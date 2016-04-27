@@ -299,7 +299,3 @@ class Measure(object):
         else:
             tp, fp, fn = self.count_matches(system, gold)
             return tp, fp, tp, fn
-
-    def docs_to_contingency(self, system, gold):
-        return self.contingency([a for doc in system for a in doc.annotations],
-                                [a for doc in gold for a in doc.annotations])
