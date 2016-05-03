@@ -3,6 +3,7 @@
 
 from collections import Sequence, defaultdict
 import operator
+import warnings
 
 from .utils import unicode
 
@@ -173,9 +174,7 @@ class Candidate(object):
 
 
 class Measure(object):
-    __slots__ = ['key', 'filter', 'filter_fn', 'agg']
-
-    def __init__(self, key, filter=None, agg='sets-micro'):
+    def __init__(self, key, filter=None, agg='sets'):
         """
         key : list of fields for mention comparison
         filter : a function or attribute name to select evaluated annotations
@@ -189,10 +188,18 @@ class Measure(object):
             assert isinstance(filter, str)
             filter = operator.attrgetter(filter)
         self.filter_fn = filter
+        if agg == 'sets-micro':
+            warnings.warn('`sets-micro\' aggregate has been renamed to '
+                          '`sets\' and will be removed in a future '
+                          'release.',
+                          DeprecationWarning)
+            self.display_agg = agg
+            agg = 'sets'
         self.agg = agg
 
     def __str__(self):
-        return '{}:{}:{}'.format(self.agg, self.filter, '+'.join(self.key))
+        return '{}:{}:{}'.format(getattr(self, 'display_agg', self.agg),
+                                 self.filter, '+'.join(self.key))
 
     @classmethod
     def from_string(cls, s):
@@ -207,7 +214,7 @@ class Measure(object):
         return ('{0.__class__.__name__}('
                 '{0.key!r}, {0.filter!r}, {0.agg!r})'.format(self))
 
-    NON_CLUSTERING_AGG = ('sets-micro',)  # 'sets-macro')
+    NON_CLUSTERING_AGG = ('sets',)
 
     @property
     def is_clustering(self):
